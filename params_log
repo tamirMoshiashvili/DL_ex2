@@ -1,0 +1,10 @@
+batch size = 64, learning rate = 0.001, iteration number = 10, iter time = alot, loss = 2000+
+batch size = 1000, learning rate = 0.01, iteration number = 10, iter time = 21, loss = 1000+
+batch size = 2000, learning rate = 0.01, iteration number = 10, iter time = 16, loss = 779
+batch size = 4000, learning rate = 0.01, iteration number = 10, iter time = 14, loss = 458
+batch size = 4000, learning rate = 0.05, iteration number = 10, iter time = 14, loss = 321
+batch size = 4000, learning rate = 0.1, iteration number = 10, iter time = 14, loss = 284
+batch size = 8000, learning rate = 0.1, iteration number = 10, iter time = 14, loss = 160
+batch size = 16000, learning rate = 0.1, iteration number = 10, iter time = 13, loss = 93
+
+batch size = , learning rate = , iteration number = , iter time = , loss =
