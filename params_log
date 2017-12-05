@@ -1,5 +1,24 @@
-batch size = 16000, learning rate = 0.1, accuracy = 55.22%
-batch size = 16000, learning rate = 0.1, accuracy = 55.44%
-batch size = 16000, learning rate = 0.001, accuracy = 95.91%
+# hidden dim = 20, batch size = 16000
+learning rate = 0.1, accuracy = 55.22%
+learning rate = 0.1, accuracy = 55.44%
+learning rate = 0.001, accuracy = 11.61%
+learning rate = 0.001, accuracy = 11.61%
+learning rate = 0.1, accuracy = 55.6%
+learning rate = 0.5, accuracy = 64.32%
 
-batch size = , learning rate = , accuracy =
+learning rate = 0.5, train accuracy = 64.41%, dev acc = 64.76%
+batch = 1000, learning rate = 2, train accuracy = 86.48%, dev acc = 85.43%
+
+# hiden dim = 40
+learning rate = 0.5, train accuracy = 67.67%, dev acc = 68.67%
+learning rate = 0.9, train accuracy = 71.36%, dev acc = 72.45%
+learning rate = 1.5, train accuracy = 74.18%, dev acc = 73.83%
+
+batch = 8000, learning rate = 1.5, train accuracy = 77.86%, dev acc = 78.05%
+batch = 8000, learning rate = 0.5, train accuracy = 72.32%, dev acc = 73.15%
+batch = 8000, learning rate = 2, train accuracy = 79%, dev acc = 79.87%
+batch = 4000, learning rate = 2, train accuracy = 83.36%, dev acc = 83.04%
+batch = 2000, learning rate = 2, train accuracy = 87.01%, dev acc = 85.49%
+batch = 1000, learning rate = 2, train accuracy = 90.1%, dev acc = 89.13%
+
+learning rate = , train accuracy = , dev acc =

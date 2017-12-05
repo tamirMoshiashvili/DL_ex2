@@ -14,6 +14,7 @@ def read_file(filename):
 
 
 # unique tokens
+UNK = '_UNK_'
 START = '_START_'
 END = '_END_'
 
@@ -23,7 +24,7 @@ def fill_words_and_tags(lines):
     fill the WORDS and TAGS sets from the given lines
     :param lines: list of lines.
     """
-    WORDS.update({START, END})
+    WORDS.update({START, END, UNK})
     TAGS.update({START, END})
     for line in lines:
         if line == '':
@@ -93,19 +94,15 @@ def to_windows(data_set):
     windows = []
     for words, tags in data_set:
         for i in xrange(2, len(words) - 2):
+            # create window of words
             curr_window = [words[i-2], words[i-1], words[i], words[i+1], words[i+2]]
+
+            # replace the unknown words in UNK
+            for j, word in enumerate(curr_window):
+                if word not in WORDS:
+                    curr_window[j] = UNK
+
+            # encode
             curr_window = [words_dict[word] for word in curr_window]
             windows.append((curr_window, tags_dict[tags[i]]))
     return windows
-
-
-# if __name__ == '__main__':
-#     myfile_name = 'myfile.txt'
-#     myfile_lines = read_file(myfile_name)
-#
-#     data_set = get_data_set(myfile_lines)
-#     windows = to_windows(data_set)
-#     for window, tag in windows:
-#         print 'window: ' + str(window)
-#         print 'tag: ' + str(tag)
-#         print

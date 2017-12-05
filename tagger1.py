@@ -19,8 +19,8 @@ class Net(nn.Module):
         self.emb_dim = embedding_dim
         self.window_size = win_size
 
-        self.batch_size = 16000
-        self.lr = 0.001
+        self.batch_size = 1000
+        self.lr = 2
 
     def forward(self, inputs):
         embeds = self.embeddings(inputs).view((-1, self.window_size * self.emb_dim))
@@ -70,6 +70,21 @@ class Net(nn.Module):
             print str(epoch) + ' - loss: ' + str(total_loss / loader_size) + ', time: ' + str(
                 time() - curr_t) + ', accuracy: ' + str(good / (good + bad))
 
+    def predict_and_check_accuracy(self, data_set, name):
+        good = bad = 0.0
+
+        data_loader = self._get_loader_of(data_set)
+        for i, data in enumerate(data_loader, 0):
+            # predict
+            inputs, tags = data
+            outputs = self(Variable(inputs))
+            _, predicted = torch.max(outputs.data, 1)
+
+            # accuracy
+            bad += (predicted != tags).sum()
+            good += (predicted == tags).sum()
+        print name + ' accuracy: ' + str(good / (good + bad))
+
 
 if __name__ == '__main__':
     print 'start'
@@ -79,8 +94,11 @@ if __name__ == '__main__':
     vocab_size = len(utils.WORDS)
     lables_size = len(utils.TAGS)
     window_size = 5
-    hidden_dim = 20
+    hidden_dim = 40
     net = Net(vocab_size, window_size, hidden_dim, lables_size)
     net.train_on(utils.to_windows(train_data))
+
+    net.predict_and_check_accuracy(utils.to_windows(utils.DEV), 'DEV')
+    # net.predict_and_check_accuracy(utils.to_windows(utils.TEST), 'TEST')
 
     print time() - t
