@@ -20,6 +20,7 @@ class Net(nn.Module):
         self.window_size = win_size
 
         self.batch_size = 16000
+        self.lr = 0.001
 
     def forward(self, inputs):
         embeds = self.embeddings(inputs).view((-1, self.window_size * self.emb_dim))
@@ -43,10 +44,11 @@ class Net(nn.Module):
         loader_size = len(train_loader)
 
         criterion = nn.CrossEntropyLoss()  # include the softmax
-        optimizer = optim.SGD(self.parameters(), lr=0.1)
+        optimizer = optim.SGD(self.parameters(), lr=self.lr)
 
         for epoch in range(10):
             total_loss = 0.0
+            good = bad = 0.0
             curr_t = time()
 
             for i, data in enumerate(train_loader, 0):
@@ -59,9 +61,14 @@ class Net(nn.Module):
                 loss = criterion(outputs, tags)
                 loss.backward()
                 optimizer.step()
-
                 total_loss += loss.data[0]
-            print str(epoch) + ' - loss: ' + str(total_loss / loader_size) + ', time: ' + str(time() - curr_t)
+
+                _, predicted = torch.max(outputs.data, 1)
+                bad += (predicted != tags.data).sum()
+                good += (predicted == tags.data).sum()
+
+            print str(epoch) + ' - loss: ' + str(total_loss / loader_size) + ', time: ' + str(
+                time() - curr_t) + ', accuracy: ' + str(good / (good + bad))
 
 
 if __name__ == '__main__':
