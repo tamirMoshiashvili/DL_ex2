@@ -4,7 +4,7 @@ WORDS = set()
 
 def read_file(filename):
     """
-    get filename.
+    :param filename name of file to read
     :return list of lines.
     """
     f = open(filename, 'r')
@@ -24,11 +24,14 @@ def fill_words_and_tags(lines):
     fill the WORDS and TAGS sets from the given lines
     :param lines: list of lines.
     """
+    # include the unique tokens
     WORDS.update({START, END, UNK})
     TAGS.update({START, END})
+
     for line in lines:
-        if line == '':
+        if line == '':  # ignore empty lines
             continue
+
         word, tag = line.split()
         WORDS.add(word)
         TAGS.add(tag)
@@ -36,6 +39,8 @@ def fill_words_and_tags(lines):
 
 def get_data_set(file_lines):
     """
+    NOTE -  file_lines must include the tag along with the word,
+            this function is for train and dev data.
     :param file_lines: list of lines, each line is 'word tag' or ''
     :return: list of tuples, each tuple is sentence and its tags.
     """
@@ -69,6 +74,12 @@ def get_data_set(file_lines):
 
 
 def get_test_set(file_lines):
+    """
+    NOTE -  each line in file_lines is a single word,
+            this function is for test data.
+    :param file_lines: list of lines, each line is 'word' or ''
+    :return: list of sentences.
+    """
     sentence = []
     lines = []
 
@@ -90,21 +101,26 @@ def get_test_set(file_lines):
     return lines
 
 
+# TRAIN
 train_pos_filename = 'data/pos/train'
 train_pos_lines = read_file(train_pos_filename)
 fill_words_and_tags(train_pos_lines)
 
+# dicts for encode and decode the words and tags
 I2W = {i: word for i, word in enumerate(WORDS)}
 words_dict = {word: i for i, word in enumerate(WORDS)}
 I2T = {i: tag for i, tag in enumerate(TAGS)}
 tags_dict = {tag: i for i, tag in enumerate(TAGS)}
 
+# DEV
 dev_pos_filename = 'data/pos/dev'
 dev_pos_lines = read_file(dev_pos_filename)
 
+# TEST
 test_pos_filename = 'data/pos/test'
 test_pos_lines = read_file(test_pos_filename)
 
+# create the sets
 TRAIN = get_data_set(train_pos_lines)
 DEV = get_data_set(dev_pos_lines)
 TEST = get_test_set(test_pos_lines)
@@ -112,9 +128,11 @@ TEST = get_test_set(test_pos_lines)
 
 def to_windows(data_set):
     """
+    NOTE - data_set must include the tags along side the words,
+            this function is for train and dev data sets.
     :param data_set: list of tuples, each tuple is (words, tags) where each of them is a list
-    :return: list of tuples, each tuple is (window, tag) where windows is a vector of 5 words,
-             each element is represented by its id.
+    :return: list of tuples, each tuple is (window, tag) where window is a vector of 5 words,
+             each element is represented by its id i.e. number.
     """
     windows = []
     for words, tags in data_set:
@@ -134,6 +152,13 @@ def to_windows(data_set):
 
 
 def test_to_windows(test_set):
+    """
+    NOTE - test_set must be *only* words,
+            this function is for test set.
+    :param test_set: list of words where each of them is a list
+    :return: list of windows, each window is a vector of 5 words,
+             each element is represented by its id i.e. number.
+    """
     windows = []
     for words in test_set:
         for i in xrange(2, len(words) - 2):
