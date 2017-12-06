@@ -19,6 +19,6 @@ batch = 8000, learning rate = 0.5, train accuracy = 72.32%, dev acc = 73.15%
 batch = 8000, learning rate = 2, train accuracy = 79%, dev acc = 79.87%
 batch = 4000, learning rate = 2, train accuracy = 83.36%, dev acc = 83.04%
 batch = 2000, learning rate = 2, train accuracy = 87.01%, dev acc = 85.49%
-batch = 1000, learning rate = 2, train accuracy = 90.1%, dev acc = 89.13%
+batch = 1000, learning rate = 2, train accuracy = 90.1%, dev acc = 89.13%   *BEST*
 
 learning rate = , train accuracy = , dev acc =

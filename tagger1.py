@@ -1,5 +1,7 @@
 from time import time
 
+from StringIO import StringIO
+
 import utils
 import torch
 import torch.nn as nn
@@ -39,7 +41,15 @@ class Net(nn.Module):
         loader = tu_data.DataLoader(data_set, batch_size=self.batch_size, shuffle=True)
         return loader
 
+    def _get_test_loader(self, data):
+        data, y = torch.LongTensor(data), torch.LongTensor()
+        data, y = data.type(torch.LongTensor), y.type(torch.LongTensor)
+        test_set = tu_data.TensorDataset(data, y)
+        loader = tu_data.DataLoader(test_set, batch_size=self.batch_size, shuffle=False)
+        return loader
+
     def train_on(self, train_data):
+        dev = utils.to_windows(utils.DEV)
         train_loader = self._get_loader_of(train_data)
         loader_size = len(train_loader)
 
@@ -69,6 +79,7 @@ class Net(nn.Module):
 
             print str(epoch) + ' - loss: ' + str(total_loss / loader_size) + ', time: ' + str(
                 time() - curr_t) + ', accuracy: ' + str(good / (good + bad))
+            net.predict_and_check_accuracy(dev, 'DEV')
 
     def predict_and_check_accuracy(self, data_set, name):
         good = bad = 0.0
@@ -83,7 +94,21 @@ class Net(nn.Module):
             # accuracy
             bad += (predicted != tags).sum()
             good += (predicted == tags).sum()
-        print name + ' accuracy: ' + str(good / (good + bad))
+        print '\t' + name + ' accuracy: ' + str(good / (good + bad))
+
+    def predict_test(self, test_set):
+        text = StringIO()
+        id_to_word = utils.I2W
+        id_to_tag = utils.I2T
+
+        test_loader = self._get_test_loader(test_set)
+        for i, inputs in enumerate(test_loader, 0):
+            # predict
+            outputs = self(Variable(inputs))
+            _, predicted = torch.max(outputs.data, 1)
+            word = inputs[2]
+
+            text.write(id_to_word[word] + ' ' + id_to_tag[predicted] + '\n')
 
 
 if __name__ == '__main__':
@@ -98,7 +123,6 @@ if __name__ == '__main__':
     net = Net(vocab_size, window_size, hidden_dim, lables_size)
     net.train_on(utils.to_windows(train_data))
 
-    net.predict_and_check_accuracy(utils.to_windows(utils.DEV), 'DEV')
     # net.predict_and_check_accuracy(utils.to_windows(utils.TEST), 'TEST')
 
     print time() - t
