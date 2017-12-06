@@ -34,15 +34,13 @@ def fill_words_and_tags(lines):
         TAGS.add(tag)
 
 
-def get_data_set(file_lines, contains_tags=True):
+def get_data_set(file_lines):
     """
-    :param file_lines: list of lines, each line is 'word tag' or 'word' (can be also '')
-    :return: list of tuples, each tuple is sentence and its tags,
-             or list of sentences.
+    :param file_lines: list of lines, each line is 'word tag' or ''
+    :return: list of tuples, each tuple is sentence and its tags.
     """
     sentence = []
-    if contains_tags:
-        sentence_tags = []
+    sentence_tags = []
     lines = []
 
     file_lines.append('')
@@ -51,29 +49,44 @@ def get_data_set(file_lines, contains_tags=True):
             # start tags
             sentence.insert(0, START)
             sentence.insert(0, START)
-            if contains_tags:
-                sentence_tags.insert(0, START)
-                sentence_tags.insert(0, START)
-                sentence_tags.extend([END, END])
+            sentence_tags.insert(0, START)
+            sentence_tags.insert(0, START)
+
+            # end tags
+            sentence.extend([END, END])
+            sentence_tags.extend([END, END])
+
+            # insert the current tuple (sentence, tags) and clear the lists
+            lines.append((sentence, sentence_tags))
+            sentence = []
+            sentence_tags = []
+        else:
+            # add the word and tag
+            word, tag = line.split()
+            sentence.append(word)
+            sentence_tags.append(tag)
+    return lines
+
+
+def get_test_set(file_lines):
+    sentence = []
+    lines = []
+
+    file_lines.append('')
+    for line in file_lines:
+        if line == '':
+            # start tags
+            sentence.insert(0, START)
+            sentence.insert(0, START)
 
             # end tags
             sentence.extend([END, END])
 
             # insert the current tuple (sentence, tags) and clear the lists
+            lines.append(sentence)
             sentence = []
-            if contains_tags:
-                lines.append((sentence, sentence_tags))
-                sentence_tags = []
-            else:
-                lines.append(sentence)
         else:
-            # add the word and tag
-            if contains_tags:
-                word, tag = line.split()
-                sentence.append(word)
-                sentence_tags.append(tag)
-            else:
-                sentence.append(line)
+            sentence.append(line)
     return lines
 
 
@@ -81,11 +94,10 @@ train_pos_filename = 'data/pos/train'
 train_pos_lines = read_file(train_pos_filename)
 fill_words_and_tags(train_pos_lines)
 
-I2W = enumerate(WORDS)
-words_dict = {word: i for i, word in I2W}
-
-I2T = enumerate(TAGS)
-tags_dict = {tag: i for i, tag in I2T}
+I2W = {i: word for i, word in enumerate(WORDS)}
+words_dict = {word: i for i, word in enumerate(WORDS)}
+I2T = {i: tag for i, tag in enumerate(TAGS)}
+tags_dict = {tag: i for i, tag in enumerate(TAGS)}
 
 dev_pos_filename = 'data/pos/dev'
 dev_pos_lines = read_file(dev_pos_filename)
@@ -95,7 +107,7 @@ test_pos_lines = read_file(test_pos_filename)
 
 TRAIN = get_data_set(train_pos_lines)
 DEV = get_data_set(dev_pos_lines)
-TEST = get_data_set(test_pos_lines, contains_tags=False)
+TEST = get_test_set(test_pos_lines)
 
 
 def to_windows(data_set):
@@ -121,7 +133,7 @@ def to_windows(data_set):
     return windows
 
 
-def test_to_window(test_set):
+def test_to_windows(test_set):
     windows = []
     for words in test_set:
         for i in xrange(2, len(words) - 2):
