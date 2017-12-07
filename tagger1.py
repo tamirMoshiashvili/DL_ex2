@@ -113,7 +113,7 @@ class Net(nn.Module):
                 bad += (predicted != tags.data).sum()
                 if self.mode == 'NER':
                     zipped = zip(predicted, tags.data)
-                    good += sum([pred == real for pred, real in zipped if pred == real == self.O_id])
+                    good += sum([pred == real for pred, real in zipped if pred == real and pred != self.O_id])
                 else:  # POS
                     good += (predicted == tags.data).sum()
 
@@ -148,7 +148,7 @@ class Net(nn.Module):
             bad += (predicted != tags.data).sum()
             if self.mode == 'NER':
                 zipped = zip(predicted, tags.data)
-                good += sum([pred == real for pred, real in zipped if pred == real == self.O_id])
+                good += sum([pred == real for pred, real in zipped if pred == real and pred != self.O_id])
             else:  # POS
                 good += (predicted == tags.data).sum()
         # loss, acc
@@ -164,7 +164,7 @@ class Net(nn.Module):
         id_to_word = utils.I2W
         id_to_tag = utils.I2T
 
-        test_loader = self._get_test_loader(test_set)
+        test_loader = self._get_test_loader(utils.test_to_windows(test_set))
         for i, data in enumerate(test_loader, 0):
             inputs, _ = data
 
@@ -203,7 +203,7 @@ if __name__ == '__main__':
         DEV = utils.NER_DEV
         TEST = utils.NER_TEST
         log_filename = 'ner_dev_log_file'
-        learning_rate = 0.01
+        learning_rate = 0.05
 
     print 'start'
     t = time()
@@ -229,6 +229,6 @@ if __name__ == '__main__':
     #                    'pos_dev.pred')
 
     print 'predict test'
-    model.predict_test(utils.test_to_windows(TEST), 'test1.' + MODE.lower())
+    model.predict_test(TEST, 'test1.' + MODE.lower())
 
     print time() - t
