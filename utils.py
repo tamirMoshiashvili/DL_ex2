@@ -1,5 +1,9 @@
 TAGS = set()
 WORDS = set()
+I2W = dict()
+I2T = dict()
+words_dict = dict()
+tags_dict = dict()
 
 
 def read_file(filename):
@@ -35,6 +39,11 @@ def fill_words_and_tags(lines):
         word, tag = line.split()
         WORDS.add(word)
         TAGS.add(tag)
+    # dicts for encode and decode the words and tags
+    I2W.update({i: word for i, word in enumerate(WORDS)})
+    words_dict.update({word: i for i, word in enumerate(WORDS)})
+    I2T.update({i: tag for i, tag in enumerate(TAGS)})
+    tags_dict.update({tag: i for i, tag in enumerate(TAGS)})
 
 
 def get_data_set(file_lines):
@@ -104,26 +113,29 @@ def get_test_set(file_lines):
 # TRAIN
 train_pos_filename = 'data/pos/train'
 train_pos_lines = read_file(train_pos_filename)
-fill_words_and_tags(train_pos_lines)
-
-# dicts for encode and decode the words and tags
-I2W = {i: word for i, word in enumerate(WORDS)}
-words_dict = {word: i for i, word in enumerate(WORDS)}
-I2T = {i: tag for i, tag in enumerate(TAGS)}
-tags_dict = {tag: i for i, tag in enumerate(TAGS)}
+train_ner_filename = 'data/ner/train'
+train_ner_lines = read_file(train_ner_filename)
 
 # DEV
 dev_pos_filename = 'data/pos/dev'
 dev_pos_lines = read_file(dev_pos_filename)
+dev_ner_filename = 'data/ner/dev'
+dev_ner_lines = read_file(dev_ner_filename)
 
 # TEST
 test_pos_filename = 'data/pos/test'
 test_pos_lines = read_file(test_pos_filename)
+test_ner_filename = 'data/ner/test'
+test_ner_lines = read_file(test_ner_filename)
 
 # create the sets
-TRAIN = get_data_set(train_pos_lines)
-DEV = get_data_set(dev_pos_lines)
-TEST = get_test_set(test_pos_lines)
+POS_TRAIN = get_data_set(train_pos_lines)
+POS_DEV = get_data_set(dev_pos_lines)
+POS_TEST = get_test_set(test_pos_lines)
+
+NER_TRAIN = get_data_set(train_ner_lines)
+NER_DEV = get_data_set(dev_ner_lines)
+NER_TEST = get_test_set(test_ner_lines)
 
 
 def to_windows(data_set):

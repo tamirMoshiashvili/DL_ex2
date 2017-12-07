@@ -13,7 +13,7 @@ import torch.utils.data as tu_data
 
 
 class Net(nn.Module):
-    def __init__(self, d_in, win_size, d_hid, d_out, embedding_dim=50):
+    def __init__(self, d_in, d_out, lr, mode, d_hid=64, embedding_dim=50, win_size=5):
         super(Net, self).__init__()
         self.embeddings = nn.Embedding(d_in, embedding_dim)
         self.linear1 = torch.nn.Linear(win_size * embedding_dim, d_hid)
@@ -22,10 +22,15 @@ class Net(nn.Module):
         self.emb_dim = embedding_dim
         self.window_size = win_size
 
+        self.mode = mode
+        self.O_id = ''
+        if MODE == 'NER':
+            self.O_id = utils.tags_dict['O']
+
         # train parameters
         self.batch_size = 1000
-        self.lr = 0.001
-        self.iter_num = 10
+        self.lr = lr
+        self.iter_num = 5
 
     def forward(self, inputs):
         embeds = self.embeddings(inputs).view((-1, self.window_size * self.emb_dim))
@@ -70,12 +75,14 @@ class Net(nn.Module):
         f.write(text.getvalue())
         f.close()
 
-    def train_on(self, train_data):
+    def train_on(self, train_data, dev_data, result_filename):
         """
         train the net on the given data and write the results of the dev set in a file (CSV format).
         :param train_data: list of windows, each is list of 5 words.
+        :param dev_data: list of windows, each is list of 5 words.
+        :param result_filename: name of file to write the result in.
         """
-        dev = utils.to_windows(utils.DEV)
+        dev = utils.to_windows(dev_data)
         train_loader = self._get_loader_of(train_data)
         loader_size = len(train_loader)
 
@@ -104,7 +111,11 @@ class Net(nn.Module):
                 # extract the predicted label and update good and bad
                 _, predicted = torch.max(outputs.data, 1)
                 bad += (predicted != tags.data).sum()
-                good += (predicted == tags.data).sum()
+                if self.mode == 'NER':
+                    zipped = zip(predicted, tags.data)
+                    good += sum([pred == real for pred, real in zipped if pred == real == self.O_id])
+                else:  # POS
+                    good += (predicted == tags.data).sum()
 
             print str(epoch) + ' - loss: ' + str(total_loss / loader_size) + ', time: ' + str(
                 time() - curr_t) + ', accuracy: ' + str(good / (good + bad))
@@ -112,7 +123,7 @@ class Net(nn.Module):
             # check loss and accuracy of dev
             text.write(model.predict_and_check_accuracy(dev, criterion))
         # write to file
-        self._write_to_file('dev_log_file', text)
+        self._write_to_file(result_filename, text)
 
     def predict_and_check_accuracy(self, data_set, criterion):
         """
@@ -135,7 +146,11 @@ class Net(nn.Module):
 
             # accuracy
             bad += (predicted != tags.data).sum()
-            good += (predicted == tags.data).sum()
+            if self.mode == 'NER':
+                zipped = zip(predicted, tags.data)
+                good += sum([pred == real for pred, real in zipped if pred == real == self.O_id])
+            else:  # POS
+                good += (predicted == tags.data).sum()
         # loss, acc
         return str(total_loss / loader_size) + ',' + str(good / (good + bad)) + '\n'
 
@@ -168,29 +183,41 @@ POS_MODEL_PATH = 'pos_model_file'
 NER_MODEL_PATH = 'ner_model_file'
 
 if __name__ == '__main__':
-    MODE = 'POS'
-    MODEL_PATH = ''
+    MODE = 'NER'
+    MODEL_PATH = DEV = TRAIN = TEST = ''
+    log_filename = ''
+    learning_rate = 0
+
     if MODE == 'POS':
+        utils.fill_words_and_tags(utils.train_pos_lines)
         MODEL_PATH = POS_MODEL_PATH
-    else:
+        TRAIN = utils.POS_TRAIN
+        DEV = utils.POS_DEV
+        TEST = utils.POS_TEST
+        log_filename = 'pos_dev_log_file'
+        learning_rate = 0.001
+    else:  # NER
+        utils.fill_words_and_tags(utils.train_ner_lines)
         MODEL_PATH = NER_MODEL_PATH
+        TRAIN = utils.NER_TRAIN
+        DEV = utils.NER_DEV
+        TEST = utils.NER_TEST
+        log_filename = 'ner_dev_log_file'
+        learning_rate = 0.01
 
     print 'start'
     t = time()
 
-    train_data = utils.TRAIN
     vocab_size = len(utils.WORDS)
-    lables_size = len(utils.TAGS)
-    window_size = 5
-    hidden_dim = 64
+    labels_size = len(utils.TAGS)
 
-    model = Net(vocab_size, window_size, hidden_dim, lables_size)
+    model = Net(vocab_size, labels_size, learning_rate, MODE)
     if not os.path.isfile(MODEL_PATH):  # first time
         # train
-        model.train_on(utils.to_windows(train_data))
+        model.train_on(utils.to_windows(TRAIN), DEV, log_filename)
         # save the net after train
         torch.save(model.state_dict(), MODEL_PATH)
-    else:   # model file exists, was trained before
+    else:  # model file exists, was trained before
         model.load_state_dict(torch.load(MODEL_PATH))
 
     # print 'predict train'
@@ -201,8 +228,7 @@ if __name__ == '__main__':
     # model.predict_test(utils.test_to_windows(utils.get_test_set(utils.read_file('test_data/dev_pos_test'))),
     #                    'pos_dev.pred')
 
-    # print 'predict pos test'
-    # model.predict_test(utils.test_to_windows(utils.get_test_set(utils.read_file('data/pos/test'))),
-    #                    'test1.pos')
+    print 'predict test'
+    model.predict_test(utils.test_to_windows(TEST), 'test1.' + MODE.lower())
 
     print time() - t
