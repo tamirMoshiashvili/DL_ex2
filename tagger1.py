@@ -13,7 +13,7 @@ import torch.utils.data as tu_data
 
 
 class Net(nn.Module):
-    def __init__(self, d_in, d_out, lr, mode, d_hid=64, embedding_dim=50, win_size=5):
+    def __init__(self, d_in, d_out, lr, mode, iter_num, d_hid=64, embedding_dim=50, win_size=5):
         super(Net, self).__init__()
         self.embeddings = nn.Embedding(d_in, embedding_dim)
         self.linear1 = torch.nn.Linear(win_size * embedding_dim, d_hid)
@@ -30,7 +30,7 @@ class Net(nn.Module):
         # train parameters
         self.batch_size = 1000
         self.lr = lr
-        self.iter_num = 5
+        self.iter_num = iter_num
 
     def forward(self, inputs):
         embeds = self.embeddings(inputs).view((-1, self.window_size * self.emb_dim))
@@ -154,39 +154,49 @@ class Net(nn.Module):
         # loss, acc
         return str(total_loss / loader_size) + ',' + str(good / (good + bad)) + '\n'
 
-    def predict_test(self, test_set, dest_filename):
+    def predict_test(self, test_lines, dest_filename):
         """
         predict on the given test_set, write the results in a file in a format of 'word tag'.
-        :param test_set: test set
+        :param test_lines: test set
         :param dest_filename: name of destination file to write the results into.
         """
         text = StringIO()
-        id_to_word = utils.I2W
+        # id_to_word = utils.I2W
         id_to_tag = utils.I2T
 
-        test_loader = self._get_test_loader(utils.test_to_windows(test_set))
+        test_loader = self._get_test_loader(utils.test_to_windows(utils.get_test_set(test_lines)))
         for i, data in enumerate(test_loader, 0):
             inputs, _ = data
 
             # predict
             outputs = self(Variable(inputs))
             _, predicted = torch.max(outputs.data, 1)
-            word = id_to_word[inputs[0][2]]
             tag = id_to_tag[predicted[0]]
 
-            text.write(word + ' ' + tag + '\n')
+            text.write(tag + '\n')
+
+        words_and_tags = StringIO()
+        tags = text.getvalue().splitlines()
+        j = 0
+        for i in range(len(tags)):
+            while test_lines[j] == '':
+                words_and_tags.write('\n')
+                j += 1
+            words_and_tags.write(test_lines[j] + ' ' + tags[i] + '\n')
+            j += 1
+
         # write results to file
-        self._write_to_file(dest_filename, text)
+        self._write_to_file(dest_filename, words_and_tags)
 
 
 POS_MODEL_PATH = 'pos_model_file'
 NER_MODEL_PATH = 'ner_model_file'
 
 if __name__ == '__main__':
-    MODE = 'NER'
+    MODE = 'POS'
     MODEL_PATH = DEV = TRAIN = TEST = ''
     log_filename = ''
-    learning_rate = 0
+    learning_rate = iter_number = 0
 
     if MODE == 'POS':
         utils.fill_words_and_tags(utils.train_pos_lines)
@@ -196,6 +206,7 @@ if __name__ == '__main__':
         TEST = utils.POS_TEST
         log_filename = 'pos_dev_log_file'
         learning_rate = 0.001
+        iter_number = 10
     else:  # NER
         utils.fill_words_and_tags(utils.train_ner_lines)
         MODEL_PATH = NER_MODEL_PATH
@@ -204,6 +215,7 @@ if __name__ == '__main__':
         TEST = utils.NER_TEST
         log_filename = 'ner_dev_log_file'
         learning_rate = 0.05
+        iter_number = 5
 
     print 'start'
     t = time()
@@ -211,7 +223,7 @@ if __name__ == '__main__':
     vocab_size = len(utils.WORDS)
     labels_size = len(utils.TAGS)
 
-    model = Net(vocab_size, labels_size, learning_rate, MODE)
+    model = Net(vocab_size, labels_size, learning_rate, MODE, iter_number)
     if not os.path.isfile(MODEL_PATH):  # first time
         # train
         model.train_on(utils.to_windows(TRAIN), DEV, log_filename)

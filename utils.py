@@ -124,18 +124,16 @@ dev_ner_lines = read_file(dev_ner_filename)
 
 # TEST
 test_pos_filename = 'data/pos/test'
-test_pos_lines = read_file(test_pos_filename)
+POS_TEST = read_file(test_pos_filename)
 test_ner_filename = 'data/ner/test'
-test_ner_lines = read_file(test_ner_filename)
+NER_TEST = read_file(test_ner_filename)
 
 # create the sets
 POS_TRAIN = get_data_set(train_pos_lines)
 POS_DEV = get_data_set(dev_pos_lines)
-POS_TEST = get_test_set(test_pos_lines)
 
 NER_TRAIN = get_data_set(train_ner_lines)
 NER_DEV = get_data_set(dev_ner_lines)
-NER_TEST = get_test_set(test_ner_lines)
 
 
 def to_windows(data_set):
