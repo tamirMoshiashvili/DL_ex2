@@ -1,15 +1,15 @@
 import os
+from StringIO import StringIO
 from time import time
 
-from StringIO import StringIO
-
-import utils
 import torch
 import torch.nn as nn
-import torch.optim as optim
 import torch.nn.functional as F
-from torch.autograd import Variable
+import torch.optim as optim
 import torch.utils.data as tu_data
+from torch.autograd import Variable
+
+import utils
 
 
 class Net(nn.Module):
@@ -193,7 +193,7 @@ POS_MODEL_PATH = 'pos_model_file'
 NER_MODEL_PATH = 'ner_model_file'
 
 if __name__ == '__main__':
-    MODE = 'POS'
+    MODE = 'NER'
     MODEL_PATH = DEV = TRAIN = TEST = ''
     log_filename = ''
     learning_rate = iter_number = 0
@@ -231,14 +231,6 @@ if __name__ == '__main__':
         torch.save(model.state_dict(), MODEL_PATH)
     else:  # model file exists, was trained before
         model.load_state_dict(torch.load(MODEL_PATH))
-
-    # print 'predict train'
-    # model.predict_test(utils.test_to_windows(utils.get_test_set(utils.read_file('test_data/train_pos_test'))),
-    #                    'pos_train.pred')
-
-    # print 'predict dev'
-    # model.predict_test(utils.test_to_windows(utils.get_test_set(utils.read_file('test_data/dev_pos_test'))),
-    #                    'pos_dev.pred')
 
     print 'predict test'
     model.predict_test(TEST, 'test1.' + MODE.lower())

@@ -111,21 +111,21 @@ def get_test_set(file_lines):
 
 
 # TRAIN
-train_pos_filename = 'data/pos/train'
+train_pos_filename = '../data/pos/train'
 train_pos_lines = read_file(train_pos_filename)
-train_ner_filename = 'data/ner/train'
+train_ner_filename = '../data/ner/train'
 train_ner_lines = read_file(train_ner_filename)
 
 # DEV
-dev_pos_filename = 'data/pos/dev'
+dev_pos_filename = '../data/pos/dev'
 dev_pos_lines = read_file(dev_pos_filename)
-dev_ner_filename = 'data/ner/dev'
+dev_ner_filename = '../data/ner/dev'
 dev_ner_lines = read_file(dev_ner_filename)
 
 # TEST
-test_pos_filename = 'data/pos/test'
+test_pos_filename = '../data/pos/test'
 POS_TEST = read_file(test_pos_filename)
-test_ner_filename = 'data/ner/test'
+test_ner_filename = '../data/ner/test'
 NER_TEST = read_file(test_ner_filename)
 
 # create the sets
