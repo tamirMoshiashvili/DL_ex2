@@ -43,7 +43,7 @@ def most_similar(word, k):
     word_index = vocab.index(word)
     word = vecs[word_index]
 
-    dist_vec = np.empty(vocab_size)
+    dist_vec = np.zeros(vocab_size)
 
     for i, v in enumerate(vecs):
         if i == word_index:  # skip the calculation of distance between the word to itself
