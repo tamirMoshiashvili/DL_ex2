@@ -9,13 +9,15 @@ import torch.optim as optim
 import torch.utils.data as tu_data
 from torch.autograd import Variable
 
-from part2 import utils2 as utils
+import utils3 as utils
 
 
 class Net(nn.Module):
-    def __init__(self, d_in, d_out, lr, mode, iter_num, d_hid=64, embedding_dim=50, win_size=5):
+    def __init__(self, d_in, d_out, lr, mode, iter_num,
+                 d_hid=64, embedding_dim=50, win_size=5):
         super(Net, self).__init__()
         self.embeddings = nn.Embedding(d_in, embedding_dim)
+        self.embeddings.weight.data.copy_(torch.from_numpy(utils.vecs))
         self.linear1 = torch.nn.Linear(win_size * embedding_dim, d_hid)
         self.linear2 = torch.nn.Linear(d_hid, d_out)
 
@@ -193,28 +195,28 @@ POS_MODEL_PATH = 'pos_model_file'
 NER_MODEL_PATH = 'ner_model_file'
 
 if __name__ == '__main__':
-    MODE = 'NER'
+    MODE = 'POS'
     MODEL_PATH = DEV = TRAIN = TEST = ''
     log_filename = ''
     learning_rate = iter_number = 0
 
     if MODE == 'POS':
-        utils.fill_words_and_tags(utils.train_pos_lines)
+        utils.fill_tags(utils.train_pos_lines)
         MODEL_PATH = POS_MODEL_PATH
         TRAIN = utils.POS_TRAIN
         DEV = utils.POS_DEV
         TEST = utils.POS_TEST
         log_filename = 'pos_dev_log_file'
         learning_rate = 0.001
-        iter_number = 10
+        iter_number = 5
     else:  # NER
-        utils.fill_words_and_tags(utils.train_ner_lines)
+        utils.fill_tags(utils.train_ner_lines)
         MODEL_PATH = NER_MODEL_PATH
         TRAIN = utils.NER_TRAIN
         DEV = utils.NER_DEV
         TEST = utils.NER_TEST
         log_filename = 'ner_dev_log_file'
-        learning_rate = 0.05
+        learning_rate = 0.01
         iter_number = 5
 
     print 'start'
@@ -233,6 +235,6 @@ if __name__ == '__main__':
         model.load_state_dict(torch.load(MODEL_PATH))
 
     print 'predict test'
-    model.predict_test(TEST, 'test1.' + MODE.lower())
+    model.predict_test(TEST, 'test3.' + MODE.lower())
 
     print time() - t

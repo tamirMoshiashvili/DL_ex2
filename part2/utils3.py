@@ -1,34 +1,26 @@
+import numpy as np
+
+from part1.utils import read_file
+
 TAGS = set()
-WORDS = set()
+WORDS = read_file('vocab.txt')
+vecs = np.vstack(tuple([np.loadtxt('wordVectors.txt')]))
 I2T = dict()
-words_dict = dict()
+words_dict = {word: i for i, word in enumerate(WORDS)}
 tags_dict = dict()
 
-
-def read_file(filename):
-    """
-    :param filename name of file to read
-    :return list of lines.
-    """
-    f = open(filename, 'r')
-    lines = f.read().splitlines()
-    f.close()
-    return lines
-
-
 # unique tokens
-UNK = '_UNK_'
-START = '_START_'
-END = '_END_'
+UNK = 'UUUNKKK'
+START = '<s>'
+END = '</s>'
 
 
-def fill_words_and_tags(lines):
+def fill_tags(lines):
     """
-    fill the WORDS and TAGS sets from the given lines
+    fill the TAGS set from the given lines
     :param lines: list of lines.
     """
     # include the unique tokens
-    WORDS.update({START, END, UNK})
     TAGS.update({START, END})
 
     for line in lines:
@@ -36,10 +28,8 @@ def fill_words_and_tags(lines):
             continue
 
         word, tag = line.split()
-        WORDS.add(word)
         TAGS.add(tag)
     # dicts for encode and decode the words and tags
-    words_dict.update({word: i for i, word in enumerate(WORDS)})
     I2T.update({i: tag for i, tag in enumerate(TAGS)})
     tags_dict.update({tag: i for i, tag in enumerate(TAGS)})
 
@@ -75,7 +65,7 @@ def get_data_set(file_lines):
         else:
             # add the word and tag
             word, tag = line.split()
-            sentence.append(word)
+            sentence.append(word.lower())  # lower cased
             sentence_tags.append(tag)
     return lines
 
@@ -104,7 +94,7 @@ def get_test_set(file_lines):
             lines.append(sentence)
             sentence = []
         else:
-            sentence.append(line)
+            sentence.append(line.lower())  # lower cased
     return lines
 
 
